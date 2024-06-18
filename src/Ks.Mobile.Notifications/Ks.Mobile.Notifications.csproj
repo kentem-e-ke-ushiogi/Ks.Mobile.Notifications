@@ -13,5 +13,9 @@
     <RepositoryUrl>https://github.com/kentem-e-ke-ushiogi/Ks.Mobile.Notifications/tree/master/src/Ks.Mobile.Notifications</RepositoryUrl>
     <PackageReleaseNotes>新規作成</PackageReleaseNotes>
   </PropertyGroup>
-
+  
+  <ItemGroup>
+    <PackageReference Include="Ks.Web.ApiService.Client" Version="1.0.2" />
+  </ItemGroup>
+  
 </Project>

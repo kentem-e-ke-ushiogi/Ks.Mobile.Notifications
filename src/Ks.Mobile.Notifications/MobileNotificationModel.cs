@@ -3,7 +3,7 @@
 namespace Ks.Mobile.Notifications
 {
     /// <summary>モバイル用お知らせモデル</summary>
-    public class MobileNoticeModel
+    public class MobileNotificationModel
     {
         /// <summary>ID</summary>
         public Guid Id { get; set; }
@@ -17,8 +17,10 @@ namespace Ks.Mobile.Notifications
         /// <summary>重要なお知らせ</summary>
         public bool Important { get; set; }
 
-        /// <summary>
-        /// <para>外部リンク</para>
+        /// <summary>外部リンク</summary>
         public string Link { get; set; }
+
+        /// <summary>既読済み</summary>
+        public bool Readed { get; set; }
     }
 }
