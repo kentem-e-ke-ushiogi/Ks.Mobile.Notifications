@@ -2,6 +2,16 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
+    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+    <GenerateDocumentationFile>True</GenerateDocumentationFile>
+    <Title>モバイル用お知らせ機能ライブラリ</Title>
+    <Version>0.1.0</Version>
+    <Authors>株式会社建設システム</Authors>
+    <Company>$(Authors)</Company>
+    <Description>モバイル用お知らせ機能ライブラリ</Description>
+    <PackageProjectUrl>https://github.com/kentem-e-ke-ushiogi/Ks.Mobile.Notifications/tree/master/src/Ks.Mobile.Notifications</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/kentem-e-ke-ushiogi/Ks.Mobile.Notifications/tree/master/src/Ks.Mobile.Notifications</RepositoryUrl>
+    <PackageReleaseNotes>新規作成</PackageReleaseNotes>
   </PropertyGroup>
 
 </Project>
