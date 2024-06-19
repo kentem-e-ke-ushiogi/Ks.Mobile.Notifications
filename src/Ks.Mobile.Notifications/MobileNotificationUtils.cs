@@ -7,20 +7,15 @@ using System.Threading.Tasks;
 namespace Ks.Mobile.Notifications
 {
     /// <summary>モバイル用お知らせ機能</summary>
-    public class MobileNotificationUtils
+    public static class MobileNotificationUtils
     {
         private static KsCloudApiClient KsCloudApi;
         private static string JsonFolderPath;
 
-        /// <summary>既読リスト保存先 </summary>
-        /// <param name="jsonFolderPath"></param>
-        public static void Initialize(string jsonFolderPath)
-        {
-            var api = KsCloudApiClient.FromWebRequest(null);
-            Initialize(jsonFolderPath, api);
-        }
-
-        internal static void Initialize(string jsonFolderPath, KsCloudApiClient apiClient)
+        /// <summary>初回設定</summary>
+        /// <param name="jsonFolderPath">既読リスト保存先</param>
+        /// <param name="apiClient">通信API</param>
+        public static void Initialize(string jsonFolderPath, KsCloudApiClient apiClient)
         {
             JsonFolderPath = jsonFolderPath;
             KsCloudApi = apiClient;
@@ -42,12 +37,8 @@ namespace Ks.Mobile.Notifications
         {
             if (string.IsNullOrEmpty(JsonFolderPath) || KsCloudApi == null)
                 throw new InvalidOperationException("Call Initialize Method");
-
-            // KoDo:サーバーへの問い合わせ処理を実装
+            // KsDo:サーバーへの問い合わせ処理を実装
             var items = await GetDummyNoticeModelFromServer();
-            if (items.Length == 0)
-                return new MobileNotificationModel[0];
-            
             List<MobileNotificationModel> list = new List<MobileNotificationModel>();
             // 公開日順で新しいものから並び替え
             foreach (var item in items.OrderByDescending(p => p.Date))
@@ -59,6 +50,8 @@ namespace Ks.Mobile.Notifications
                 return list.Where(p => p.Important).ToArray();
             return list.ToArray();
         }
+
+        // KsDo:サーバーへの問い合わせ処理を実装後、テストケースに移動
 
         private static async Task<NoticeModel[]> GetDummyNoticeModelFromServer()
         {

@@ -4,7 +4,7 @@ namespace Ks.Mobile.Notifications
 {
     internal static class NotificationModelExtentions
     {
-        internal static MobileNotificationModel ToMobileModel(this NoticeModel model )
+        internal static MobileNotificationModel ToMobileModel(this NoticeModel model)
         {
             return new MobileNotificationModel()
             {
