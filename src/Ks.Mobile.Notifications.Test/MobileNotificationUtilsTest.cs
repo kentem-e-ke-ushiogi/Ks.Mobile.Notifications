@@ -12,7 +12,7 @@ namespace Ks.Mobile.Notifications.Test
             string path = Environment.CurrentDirectory;
             _JsonFilePath = Path.Combine(path, "NotificationReadedList.json");
             _client = KsCloudApiClient.FromInMemory();
-            MobileNotificationUtils.Initialize(path, _client);
+            MobileNotificationUtils.Initialize(path, _client, AppFlags.SiteBox);
         }
 
         private void DeleteTemp()
@@ -24,25 +24,16 @@ namespace Ks.Mobile.Notifications.Test
         [Fact]
         public async Task InitializeTest()
         {
-            MobileNotificationUtils.Initialize(null, null);
+            MobileNotificationUtils.Initialize(null, null, AppFlags.SiteBox);
 
             var exception = await Assert.ThrowsAsync<InvalidOperationException>(MobileNotificationUtils.GetMobileNotifications);
             Assert.Equal("Call Initialize Method", exception.Message);
             exception = await Assert.ThrowsAsync<InvalidOperationException>(MobileNotificationUtils.GetImportantMobileNotifications);
             Assert.Equal("Call Initialize Method", exception.Message);
-            exception = Assert.Throws<InvalidOperationException>(() => MobileNotificationUtils.SetReaded(Guid.NewGuid()));
+            exception = Assert.Throws<InvalidOperationException>(() => MobileNotificationUtils.SetReaded([Guid.NewGuid()]));
             Assert.Equal("Call Initialize Method", exception.Message);
 
-            MobileNotificationUtils.Initialize(Environment.CurrentDirectory, null);
-
-            exception = await Assert.ThrowsAsync<InvalidOperationException>(MobileNotificationUtils.GetMobileNotifications);
-            Assert.Equal("Call Initialize Method", exception.Message);
-            exception = await Assert.ThrowsAsync<InvalidOperationException>(MobileNotificationUtils.GetImportantMobileNotifications);
-            Assert.Equal("Call Initialize Method", exception.Message);
-            exception = await Assert.ThrowsAsync<InvalidOperationException>(MobileNotificationUtils.HasUnreadNotification);
-            Assert.Equal("Call Initialize Method", exception.Message);
-
-            MobileNotificationUtils.Initialize(null, _client);
+            MobileNotificationUtils.Initialize(Environment.CurrentDirectory, null, AppFlags.SiteBox);
 
             exception = await Assert.ThrowsAsync<InvalidOperationException>(MobileNotificationUtils.GetMobileNotifications);
             Assert.Equal("Call Initialize Method", exception.Message);
@@ -50,7 +41,16 @@ namespace Ks.Mobile.Notifications.Test
             Assert.Equal("Call Initialize Method", exception.Message);
             exception = await Assert.ThrowsAsync<InvalidOperationException>(MobileNotificationUtils.HasUnreadNotification);
             Assert.Equal("Call Initialize Method", exception.Message);
-            exception = Assert.Throws<InvalidOperationException>(() => MobileNotificationUtils.SetReaded(Guid.NewGuid()));
+
+            MobileNotificationUtils.Initialize(null, _client, AppFlags.SiteBox);
+
+            exception = await Assert.ThrowsAsync<InvalidOperationException>(MobileNotificationUtils.GetMobileNotifications);
+            Assert.Equal("Call Initialize Method", exception.Message);
+            exception = await Assert.ThrowsAsync<InvalidOperationException>(MobileNotificationUtils.GetImportantMobileNotifications);
+            Assert.Equal("Call Initialize Method", exception.Message);
+            exception = await Assert.ThrowsAsync<InvalidOperationException>(MobileNotificationUtils.HasUnreadNotification);
+            Assert.Equal("Call Initialize Method", exception.Message);
+            exception = Assert.Throws<InvalidOperationException>(() => MobileNotificationUtils.SetReaded([Guid.NewGuid()]));
             Assert.Equal("Call Initialize Method", exception.Message);
         }
 
@@ -72,9 +72,25 @@ namespace Ks.Mobile.Notifications.Test
 
             // 既読あり
 
-            MobileNotificationUtils.SetReaded(res[0].Id);
-            MobileNotificationUtils.SetReaded(res[5].Id);
-            MobileNotificationUtils.SetReaded(res[9].Id);
+            MobileNotificationUtils.SetReaded([res[0].Id]);
+            MobileNotificationUtils.SetReaded([res[5].Id]);
+            MobileNotificationUtils.SetReaded([res[9].Id]);
+
+            res = await MobileNotificationUtils.GetMobileNotifications();
+            Assert.Equal(10, res.Length);
+            Assert.True(res[0].Readed);
+            Assert.False(res[1].Readed);
+            Assert.False(res[2].Readed);
+            Assert.False(res[3].Readed);
+            Assert.False(res[4].Readed);
+            Assert.True(res[5].Readed);
+            Assert.False(res[6].Readed);
+            Assert.False(res[7].Readed);
+            Assert.False(res[8].Readed);
+            Assert.True(res[9].Readed);
+
+            // 存在しない既読あり
+            MobileNotificationUtils.SetReaded([Guid.NewGuid()]);
 
             res = await MobileNotificationUtils.GetMobileNotifications();
             Assert.Equal(10, res.Length);
@@ -101,7 +117,8 @@ namespace Ks.Mobile.Notifications.Test
             Assert.Equal("【重要】お知らせ10", res[1].Title);
 
             // 既読あり
-            MobileNotificationUtils.SetReaded(res[1].Id);
+
+            MobileNotificationUtils.SetReaded([res[1].Id]);
             res = await MobileNotificationUtils.GetImportantMobileNotifications();
             Assert.Equal(2, res.Length);
             Assert.False(res[0].Readed);
@@ -119,12 +136,12 @@ namespace Ks.Mobile.Notifications.Test
 
             // 一部既読あり
             var items = await MobileNotificationUtils.GetMobileNotifications();
-            MobileNotificationUtils.SetReaded(items[0].Id);
+            MobileNotificationUtils.SetReaded([items[0].Id]);
             res = await MobileNotificationUtils.HasUnreadNotification();
             Assert.True(res);
 
             // 全て既読
-            Array.ForEach(items, (obj) => MobileNotificationUtils.SetReaded(obj.Id));
+            Array.ForEach(items, (obj) => MobileNotificationUtils.SetReaded([obj.Id]));
             res = await MobileNotificationUtils.HasUnreadNotification();
             Assert.False(res);
 
@@ -135,8 +152,17 @@ namespace Ks.Mobile.Notifications.Test
         public void SetReadedTest()
         {
             Guid id = Guid.NewGuid();
-            MobileNotificationUtils.SetReaded(id);
+            Assert.True(MobileNotificationUtils.SetReaded([id]));
             Assert.True(File.Exists(_JsonFilePath));
+
+            Assert.True(MobileNotificationUtils.SetReaded([Guid.NewGuid(), Guid.NewGuid()]));
+
+            // 同じIDは保存しない
+
+            var timestamp1 = new FileInfo(_JsonFilePath).LastWriteTime;
+            Assert.False(MobileNotificationUtils.SetReaded([id]));
+            var timestamp2 = new FileInfo(_JsonFilePath).LastWriteTime;
+            Assert.Equal(timestamp1, timestamp2);
 
             DeleteTemp();
         }

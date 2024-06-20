@@ -57,31 +57,13 @@ namespace Ks.Mobile.Notifications
         public AppFlags RelatedApplications { get; set; }
     }
 
+    /// <summary>アプリ毎のお知らせ識別フラグ</summary>
     [Flags]
-    internal enum AppFlags
+    public enum AppFlags
     {
-        None = 0,
-        フィールドネット = 1,
-        KSデータバンク = 2,
+        /// <summary>SiteBox</summary>
         SiteBox = 4,
-        工事実績DB = 8,
-        快測ナビ = 0x10,
-        SiteBoxNATM = 0x20,
-        KSデータバンクPremium = 0x40,
-        SiteBoxRC = 0x80,
-        遠隔臨場 = 0x100,
-        KentemConnect = 0x200,
-        出来形管理クラウド = 0x400,
-        快測Scan = 0x800,
-        コンクリート品管クラウド = 0x1000,
-        日報管理クラウド = 0x2000,
-        工事実績DBクラウド = 0x4000,
-        施工体制クラウド = 0x8000,
-        快測AR = 0x10000,
-        KentemAcademy_コンストラクションスクール = 0x20000,
-        KentemAcademy_INNOSiTE_TT_SiTECH = 0x40000,
-        KentemAcademy_INNOSiTE_TT_SiTE_Scope = 0x80000,
-
+        /// <summary>全て</summary>
         All = ~0,
     }
 

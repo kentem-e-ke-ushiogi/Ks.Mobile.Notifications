@@ -13,15 +13,18 @@ namespace Ks.Mobile.Notifications
     {
         private const string JsonFileName = "NotificationReadedList.json";
         private static KsCloudApiClient KsCloudApi;
+        private static AppFlags AppFlags;
         private static string JsonFolderPath;
 
         /// <summary>初回設定</summary>
         /// <param name="jsonFolderPath">既読リスト保存先</param>
         /// <param name="apiClient">通信API</param>
-        public static void Initialize(string jsonFolderPath, KsCloudApiClient apiClient)
+        /// <param name="appFlags">お知らせのアプリフラグ</param>
+        public static void Initialize(string jsonFolderPath, KsCloudApiClient apiClient, AppFlags appFlags)
         {
             JsonFolderPath = jsonFolderPath;
             KsCloudApi = apiClient;
+            AppFlags = appFlags;
         }
 
         /// <summary> お知らせ一覧取得</summary>
@@ -44,7 +47,7 @@ namespace Ks.Mobile.Notifications
             var readedList = GetReadedList();
 
             // KsDo:サーバーへの問い合わせ処理を実装
-            var items = await GetDummyNoticeModelFromServer();
+            var items = await GetDummyNoticeModelFromServer(AppFlags);
             List<MobileNotificationModel> list = new List<MobileNotificationModel>();
             // 公開日順で新しいものから並び替え
             foreach (var item in items.OrderByDescending(p => p.Date))
@@ -69,18 +72,27 @@ namespace Ks.Mobile.Notifications
         }
 
         /// <summary> 既読を付ける</summary>
-        public static void SetReaded(Guid id)
+        public static bool SetReaded(Guid[] ids)
         {
             if (string.IsNullOrEmpty(JsonFolderPath))
                 throw new InvalidOperationException("Call Initialize Method");
-
+            bool add = false;
             List<Guid> list = GetReadedList();
-            if (list.Contains(id))
-                return;
-            list.Add(id);
+            foreach (Guid id in ids)
+            {
+                if (!list.Contains(id))
+                {
+                    list.Add(id);
+                    add = true;
+                }
+            }
+            if (!add)
+                return false;
+
             string filePath = Path.Combine(JsonFolderPath, JsonFileName);
             string json = JsonConvert.SerializeObject(list);
             File.WriteAllText(filePath, json);
+            return true;
         }
 
         private static List<Guid> GetReadedList()
@@ -95,7 +107,7 @@ namespace Ks.Mobile.Notifications
 
         // KsDo:確認用にダミーデータを作成。APIが組み込まれたらテストケースへ移動する
 
-        private static async Task<NoticeModel[]> GetDummyNoticeModelFromServer()
+        private static async Task<NoticeModel[]> GetDummyNoticeModelFromServer(AppFlags appFlags)
         {
             var task = await Task.Run(() =>
             {
@@ -109,6 +121,7 @@ namespace Ks.Mobile.Notifications
                         Link = "https://www.kentem.jp/support/20230711_01/",
                         SeverityLevel = SeverityLevel.None,
                         Date = DateTime.Now.AddDays(i),
+                        RelatedApplications = AppFlags.SiteBox,
                     };
                     list.Add(item);
                 }
@@ -119,6 +132,7 @@ namespace Ks.Mobile.Notifications
                     Link = "https://www.kentem.jp/support/20230711_01/",
                     SeverityLevel = SeverityLevel.Important,
                     Date = DateTime.Now.AddDays(100),
+                    RelatedApplications = AppFlags.SiteBox,
                 };
                 list.Add(item2);
                 var item3 = new NoticeModel()
@@ -128,9 +142,10 @@ namespace Ks.Mobile.Notifications
                     Link = "https://www.kentem.jp/support/20230711_01/",
                     SeverityLevel = SeverityLevel.Important,
                     Date = DateTime.Now.AddDays(10),
+                    RelatedApplications = AppFlags.SiteBox,
                 };
                 list.Add(item3);
-                return list.ToArray();
+                return list.Where(p => p.RelatedApplications.HasFlag(appFlags)).ToArray();
             });
             return task;
         }
